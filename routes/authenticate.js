@@ -26,6 +26,27 @@ module.exports = (express, pool) => {
         }
     });
 
+    authRouter.post('/check-username-email', async (req, res) => {
+        const { username, email } = req.body;
+
+        try {
+            const [usernameResult] = await pool.query('SELECT COUNT(*) as count FROM users WHERE username = ?', [username]);
+            const [emailResult] = await pool.query('SELECT COUNT(*) as count FROM users WHERE email = ?', [email]);
+
+            const usernameInUse = usernameResult[0].count > 0;
+            const emailInUse = emailResult[0].count > 0;
+
+            res.json({
+                usernameInUse: usernameInUse,
+                emailInUse: emailInUse
+            });
+        } catch (error) {
+            console.error('Database query error:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    });
+
+
     // Login endpoint
     authRouter.post('/login', async (req, res) => {
         const { email, password } = req.body;

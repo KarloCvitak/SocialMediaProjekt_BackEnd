@@ -1,5 +1,10 @@
 const verifyToken = require('../middlewares/verifyToken');
 
+/*
+* const commentsRouter = require('./routes/comments')(express, pool);
+app.use('/api/comments', commentsRouter);
+* */
+
 module.exports = (express, pool) => {
     const commentsRouter = express.Router();
 
@@ -19,7 +24,7 @@ module.exports = (express, pool) => {
         })
         .post(async (req, res) => {
             const comment = {
-                user_id: req.decoded.id,
+                user_id: req.body.user_id,
                 post_id: req.body.post_id,
                 content: req.body.content
             };
@@ -34,6 +39,34 @@ module.exports = (express, pool) => {
                 res.status(500).json({ status: 'Error', message: e.message });
             }
         });
+
+
+    commentsRouter.route('/posts/:postId')
+
+        .get(async (req, res) => {
+            const postId = parseInt(req.params.postId, 10);
+            try {
+                const conn = await pool.getConnection();
+                const rows = await conn.query('SELECT * FROM comments WHERE post_id = ?', [postId]);
+                conn.release();
+                res.json({ status: 'OK', comment: rows[0] });
+            } catch (e) {
+                console.error(e);
+                res.status(500).json({ status: 'Error', message: e.message });
+            }
+        }).put(async (req, res) => {
+        const comment = req.body;
+        try {
+            const conn = await pool.getConnection();
+            const result = await conn.query('UPDATE comments SET ? WHERE id = ?', [comment, req.params.id]);
+            conn.release();
+            res.json({ status: 'OK', changedRows: result.changedRows });
+        } catch (e) {
+            console.error(e);
+            res.status(500).json({ status: 'Error', message: e.message });
+        }
+    })
+
 
     commentsRouter.route('/:id')
         .get(async (req, res) => {

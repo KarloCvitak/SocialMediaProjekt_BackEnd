@@ -34,6 +34,19 @@ module.exports = (express, pool) => {
             }
         });
 
+    postsRouter.route('/users/:userId')
+        .get(async (req, res) => {
+            try {
+                const conn = await pool.getConnection();
+                const rows = await conn.query('SELECT * FROM posts WHERE user_id = ?', [req.params.userId]);
+                conn.release();
+                res.json({ status: 'OK', post: rows });
+            } catch (e) {
+                console.error(e);
+                res.status(500).json({ status: 'Error', message: e.message });
+            }
+        })
+
     postsRouter.route('/:id')
         .get(async (req, res) => {
             try {
@@ -47,10 +60,11 @@ module.exports = (express, pool) => {
             }
         })
         .put(async (req, res) => {
-            const post = req.body;
+            const postId = parseInt(req.params.id, 10);
+            const { content } = req.body;
             try {
                 const conn = await pool.getConnection();
-                const result = await conn.query('UPDATE posts SET ? WHERE id = ?', [post, req.params.id]);
+                const result = await conn.query('UPDATE posts SET content = ? WHERE id = ?', [content, postId]);
                 conn.release();
                 res.json({ status: 'OK', changedRows: result.changedRows });
             } catch (e) {

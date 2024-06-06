@@ -58,5 +58,19 @@ module.exports = (express, pool) => {
             }
         });
 
+    likesRouter.route('/posts/:postId')
+        .delete(async (req, res) => {
+            try {
+                const conn = await pool.getConnection();
+                const result = await conn.query('DELETE FROM likes WHERE post_id = ?', [req.params.postId]);
+                conn.release();
+                res.json({ status: 'OK', affectedRows: result.affectedRows });
+            } catch (e) {
+                console.error(e);
+                res.status(500).json({ status: 'Error', message: e.message });
+            }
+        });
+
+
     return likesRouter;
 };

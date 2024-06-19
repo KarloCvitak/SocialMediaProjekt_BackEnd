@@ -20,7 +20,8 @@ module.exports = (express, pool) => {
         .post(async (req, res) => {
             const post = {
                 user_id: req.decoded.id,
-                content: req.body.content
+                content: req.body.content,
+                gif_url: req.body.gif_url
             };
 
             try {
